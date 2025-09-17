@@ -1,35 +1,46 @@
 const $ = (q, el=document) => el.querySelector(q);
 const $$ = (q, el=document) => Array.from(el.querySelectorAll(q));
 
-/* Confetti on load */
+/* Confetti + floating hearts on load */
 window.addEventListener("load", () => {
+	// quick confetti
 	const duration = 900, end = Date.now() + duration;
 	(function frame(){
 		confetti({ particleCount: 40, spread: 60, startVelocity: 35, origin:{ x: Math.random(), y: Math.random()*0.3 } });
 		if (Date.now() < end) requestAnimationFrame(frame);
 	})();
+	// floating hearts
+	const fx = $("#fx"); const ctx = fx.getContext("2d");
+	function resize(){ fx.width = innerWidth; fx.height = innerHeight; }
+	window.addEventListener("resize", resize); resize();
+	const hearts = Array.from({length:24}, () => ({
+		x: Math.random()*fx.width,
+		y: fx.height + Math.random()*fx.height*0.6,
+		s: 0.6 + Math.random()*0.9,
+		v: 0.6 + Math.random()*1.1,
+		a: Math.random()*Math.PI
+	}));
+	function drawHeart(x,y,size){
+		ctx.save(); ctx.translate(x,y); ctx.scale(size,size);
+		ctx.fillStyle = "rgba(255,120,170,.25)";
+		ctx.beginPath();
+		ctx.moveTo(0,0);
+		ctx.bezierCurveTo(-12,-12, -24,10, 0,24);
+		ctx.bezierCurveTo(24,10, 12,-12, 0,0);
+		ctx.fill(); ctx.restore();
+	}
+	(function loop(){
+		ctx.clearRect(0,0,fx.width,fx.height);
+		hearts.forEach(h=>{
+			h.y -= h.v * 0.8; h.x += Math.sin(h.a+=0.02) * 0.6;
+			if (h.y < -30) { h.y = fx.height + 30; h.x = Math.random()*fx.width; }
+			drawHeart(h.x, h.y, h.s);
+		});
+		requestAnimationFrame(loop);
+	})();
 });
 
-/* Countdown to Sept 18, 2025 (local) */
-(function countdown(){
-	const target = new Date("2025-09-18T00:00:00");
-	const d=$("#cd-d"), h=$("#cd-h"), m=$("#cd-m"), s=$("#cd-s");
-	function tick(){
-		const now = new Date();
-		let diff = Math.max(0, target - now);
-		const dd = Math.floor(diff/86400000); diff -= dd*86400000;
-		const hh = Math.floor(diff/3600000);  diff -= hh*3600000;
-		const mm = Math.floor(diff/60000);    diff -= mm*60000;
-		const ss = Math.floor(diff/1000);
-		d.textContent = String(dd).padStart(2,"0");
-		h.textContent = String(hh).padStart(2,"0");
-		m.textContent = String(mm).padStart(2,"0");
-		s.textContent = String(ss).padStart(2,"0");
-	}
-	tick(); setInterval(tick, 1000);
-})();
-
-/* Draggable windows by bar */
+/* Draggable windows */
 function makeDraggable(winEl, handleSel='[data-drag]'){
 	const handle = $(handleSel, winEl) || winEl;
 	let startX=0, startY=0, sx=0, sy=0, dragging=false;
@@ -53,28 +64,24 @@ function makeDraggable(winEl, handleSel='[data-drag]'){
 	handle.addEventListener("pointerup", () => { dragging=false; winEl.style.transition=""; });
 }
 
-/* Window open/close with animation and ESC close */
+/* Window open/close behavior */
 function openWindow(win){
 	if (win.classList.contains("open")) return;
 	win.hidden = false;
-	// position slightly random so multiple windows are not stacked exactly
 	win.style.left = (200 + Math.random()*60) + "px";
 	win.style.top = (120 + Math.random()*40) + "px";
 	requestAnimationFrame(()=> win.classList.add("open"));
 	win.style.zIndex = String(Date.now());
 }
 function closeWindow(win){
+	// pause media when closing
+	const v = $("video", win); if (v) { try{ v.pause(); v.currentTime = v.currentTime; }catch{} }
 	win.classList.remove("open");
-	// Pause media inside when closing
-	const v = $("video", win); if (v) { try{ v.pause(); }catch{} }
-	setTimeout(()=>{ win.hidden = true; }, 180);
+	setTimeout(()=>{ win.hidden = true; }, 200);
 }
-function toggleWindow(win){
-	if (win.hidden || !win.classList.contains("open")) openWindow(win);
-	else closeWindow(win);
-}
+function toggleWindow(win){ (win.hidden || !win.classList.contains("open")) ? openWindow(win) : closeWindow(win); }
 
-/* Bind window chrome */
+/* Bind windows */
 function bindWindow(win){
 	makeDraggable(win);
 	const closeBtn = $('[data-close]', win);
@@ -83,19 +90,16 @@ function bindWindow(win){
 	if (minBtn) minBtn.addEventListener("click", ()=> win.classList.toggle("minimized"));
 	win.addEventListener("pointerdown", ()=> win.style.zIndex = String(Date.now()));
 }
+$$(".window").forEach(bindWindow);
 
-/* Icons toggle their windows */
+/* Icons toggle open/close */
 $$(".icon").forEach(icon=>{
-	const targetSel = icon.getAttribute("data-target");
-	const win = $(targetSel);
+	const win = $(icon.getAttribute("data-target"));
 	if (!win) return;
 	icon.addEventListener("click", ()=> toggleWindow(win));
 });
 
-/* Bind all windows */
-$$(".window").forEach(bindWindow);
-
-/* Global ESC closes the topmost open window */
+/* Global Esc closes topmost */
 document.addEventListener("keydown", (e)=>{
 	if (e.key !== "Escape") return;
 	const openWins = $$(".window.open").sort((a,b)=> (parseInt(a.style.zIndex||"0") - parseInt(b.style.zIndex||"0")));
@@ -125,7 +129,7 @@ document.addEventListener("keydown", (e)=>{
 	audio.addEventListener("timeupdate", ()=>{
 		if (!isNaN(audio.duration)){
 			seek.value = String((audio.currentTime / audio.duration) * 100 || 0);
-			time.textContent = `${fmt(audio.currentTime)}`;
+			time.textContent = fmt(audio.currentTime);
 		}
 	});
 	seek.addEventListener("input", ()=>{
@@ -133,40 +137,4 @@ document.addEventListener("keydown", (e)=>{
 			audio.currentTime = (Number(seek.value)/100) * audio.duration;
 		}
 	});
-})();
-
-/* Lightbox for gallery */
-(function(){
-	const lb = $("#lightbox");
-	const img = $("#lightboxImg");
-	const closeBtn = $(".lightbox__close");
-	$$(".gallery .zoom").forEach(el=>{
-		el.addEventListener("click", ()=>{
-			img.src = el.src;
-			lb.classList.add("show");
-			lb.setAttribute("aria-hidden","false");
-		});
-	});
-	function close(){ lb.classList.remove("show"); lb.setAttribute("aria-hidden","true"); }
-	closeBtn.addEventListener("click", close);
-	lb.addEventListener("click", (e)=>{ if (e.target === lb) close(); });
-	document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") close(); });
-})();
-
-/* FX canvas: faint scan noise */
-(() => {
-	const c = $("#fx"); const ctx = c.getContext("2d");
-	function resize(){ c.width = innerWidth; c.height = innerHeight; }
-	window.addEventListener("resize", resize); resize();
-	let t=0; (function loop(){
-		ctx.clearRect(0,0,c.width,c.height);
-		ctx.globalAlpha = 0.02;
-		for (let i=0;i<40;i++){
-			const y = Math.random()*c.height;
-			ctx.fillStyle = "white";
-			ctx.fillRect(0, y, c.width, 1);
-		}
-		ctx.globalAlpha = 1;
-		t+=1; requestAnimationFrame(loop);
-	})();
 })();
