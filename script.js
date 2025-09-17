@@ -1,152 +1,130 @@
-// Personalization
-const celebrantName = "Prima";
-const targetDate = new Date("2025-09-18T00:00:00"); // local midnight
+// Minimal global helpers
+const $ = (q, el=document) => el.querySelector(q);
+const $$ = (q, el=document) => Array.from(el.querySelectorAll(q));
 
-// Animated starfield
-(() => {
-	const canvas = document.getElementById("bg-stars");
-	const ctx = canvas.getContext("2d");
-	let w, h, stars;
+/* Confetti on load */
+window.addEventListener("load", () => {
+	const duration = 900;
+	const end = Date.now() + duration;
+	(function frame(){
+		confetti({ particleCount: 40, spread: 60, startVelocity: 35, origin:{ x: Math.random(), y: Math.random()*0.3 } });
+		if (Date.now() < end) requestAnimationFrame(frame);
+	})();
+});
 
-	function resize() {
-		w = canvas.width = window.innerWidth;
-		h = canvas.height = window.innerHeight;
-		stars = Array.from({ length: Math.ceil((w * h) / 9000) }, () => ({
-			x: Math.random() * w,
-			y: Math.random() * h,
-			r: Math.random() * 1.6 + 0.4,
-			a: Math.random() * Math.PI * 2,
-			s: Math.random() * 0.6 + 0.2
-		}));
+/* Draggable windows/elements by [data-drag] bars */
+function makeDraggable(winEl, handleSel='[data-drag]'){
+	const handle = $(handleSel, winEl) || winEl;
+	let startX=0, startY=0, sx=0, sy=0, dragging=false;
+	handle.addEventListener("pointerdown", (e)=>{
+		if (e.button !== 0) return;
+		dragging = true;
+		handle.setPointerCapture(e.pointerId);
+		const rect = winEl.getBoundingClientRect();
+		sx = rect.left; sy = rect.top;
+		startX = e.clientX; startY = e.clientY;
+		winEl.style.transition = "none";
+	});
+	handle.addEventListener("pointermove", (e)=>{
+		if (!dragging) return;
+		const dx = e.clientX - startX;
+		const dy = e.clientY - startY;
+		winEl.style.left = Math.max(0, sx + dx) + "px";
+		winEl.style.top  = Math.max(0, sy + dy) + "px";
+	});
+	handle.addEventListener("pointerup", () => { dragging=false; winEl.style.transition=""; });
+}
+
+/* Open/close/minimize logic */
+function bindWindow(win){
+	makeDraggable(win);
+	const closeBtn = $('[data-close]', win);
+	const minBtn = $('[data-minimize]', win);
+	if (closeBtn) closeBtn.addEventListener("click", ()=>{ win.hidden = true; });
+	if (minBtn) minBtn.addEventListener("click", ()=>{ win.classList.toggle("minimized"); });
+	// Click brings to front
+	win.addEventListener("pointerdown", ()=>{ win.style.zIndex = String(Date.now()); });
+}
+
+/* Init desktop icons */
+$$(".icon").forEach(icon=>{
+	const targetSel = icon.getAttribute("data-target");
+	const win = $(targetSel);
+	if (!win) return;
+	icon.addEventListener("click", ()=>{
+		win.hidden = false;
+		win.style.zIndex = String(Date.now());
+	});
+});
+
+/* Bind windows */
+$$(".window").forEach(bindWindow);
+
+/* Music player */
+(function(){
+	const audio = $("#audio");
+	const playBtn = $("#play");
+	const pauseBtn = $("#pause");
+	const seek = $("#seek");
+	const time = $("#time");
+	const music = $("#music");
+	makeDraggable(music, ".music__bar");
+	$("[data-minimize]", music).addEventListener("click", ()=> music.classList.toggle("minimized"));
+
+	function fmt(t){
+		if (isNaN(t)) return "0:00";
+		const m = Math.floor(t/60);
+		const s = Math.floor(t%60).toString().padStart(2,"0");
+		return `${m}:${s}`;
 	}
-	function frame() {
-		ctx.clearRect(0, 0, w, h);
-		for (const s of stars) {
-			s.a += 0.02;
-			const twinkle = (Math.sin(s.a) + 1) / 2;
-			ctx.fillStyle = `rgba(255,180,220,${0.35 + twinkle * 0.65})`;
-			ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
-			s.y += s.s; if (s.y > h) s.y = -5;
+	playBtn.addEventListener("click", ()=> audio.play());
+	pauseBtn.addEventListener("click", ()=> audio.pause());
+	audio.addEventListener("timeupdate", ()=>{
+		if (!isNaN(audio.duration)){
+			seek.value = String((audio.currentTime / audio.duration) * 100 || 0);
+			time.textContent = `${fmt(audio.currentTime)}`;
 		}
-		requestAnimationFrame(frame);
-	}
-	window.addEventListener("resize", resize);
-	resize(); frame();
-})();
-
-// Countdown
-(function initCountdown() {
-	const ids = { d: "d", h: "h", m: "m", s: "s" };
-	function tick() {
-		const now = new Date();
-		let diff = Math.max(0, targetDate - now);
-		const d = Math.floor(diff / (1000 * 60 * 60 * 24)); diff -= d * 86400000;
-		const h = Math.floor(diff / (1000 * 60 * 60)); diff -= h * 3600000;
-		const m = Math.floor(diff / (1000 * 60)); diff -= m * 60000;
-		const s = Math.floor(diff / 1000);
-		document.getElementById(ids.d).textContent = String(d).padStart(2, "0");
-		document.getElementById(ids.h).textContent = String(h).padStart(2, "0");
-		document.getElementById(ids.m).textContent = String(m).padStart(2, "0");
-		document.getElementById(ids.s).textContent = String(s).padStart(2, "0");
-	}
-	tick(); setInterval(tick, 1000);
-})();
-
-// Greeting card open/close + confetti
-(function initCard() {
-	const card = document.getElementById("greetingCard");
-	const openBtn = document.getElementById("openCardBtn");
-
-	function toggle(openExplicit) {
-		const willOpen = openExplicit ?? !card.classList.contains("open");
-		card.classList.toggle("open", willOpen);
-		card.setAttribute("aria-expanded", String(willOpen));
-		if (willOpen) {
-			// Burst confetti
-			const end = Date.now() + 600;
-			const colors = ["#ff8ab3","#ff5e9c","#ffb089","#ffe9e0"];
-			(function frame() {
-				confetti({
-					particleCount: 40,
-					spread: 60,
-					startVelocity: 35,
-					origin: { x: Math.random(), y: 0.2 + Math.random() * 0.2 },
-					colors
-				});
-				if (Date.now() < end) requestAnimationFrame(frame);
-			})();
+	});
+	seek.addEventListener("input", ()=>{
+		if (!isNaN(audio.duration)){
+			audio.currentTime = (Number(seek.value)/100) * audio.duration;
 		}
-	}
-	card.addEventListener("click", () => toggle());
-	card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
-	openBtn.addEventListener("click", () => toggle(true));
+	});
 })();
 
-// Lightbox for gallery
-(function initLightbox() {
-	const lb = document.getElementById("lightbox");
-	const img = document.getElementById("lightboxImg");
-	const closeBtn = lb.querySelector(".lightbox__close");
-	document.querySelectorAll(".zoomable").forEach((el) => {
-		el.addEventListener("click", () => {
+/* Lightbox for gallery */
+(function(){
+	const lb = $("#lightbox");
+	const img = $("#lightboxImg");
+	const closeBtn = $(".lightbox__close");
+	$$(".gallery .zoom").forEach(el=>{
+		el.addEventListener("click", ()=>{
 			img.src = el.src;
 			lb.classList.add("show");
-			lb.setAttribute("aria-hidden", "false");
+			lb.setAttribute("aria-hidden","false");
 		});
 	});
-	function close() {
-		lb.classList.remove("show");
-		lb.setAttribute("aria-hidden", "true");
-	}
+	function close(){ lb.classList.remove("show"); lb.setAttribute("aria-hidden","true"); }
 	closeBtn.addEventListener("click", close);
-	lb.addEventListener("click", (e) => { if (e.target === lb) close(); });
-	document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+	lb.addEventListener("click", (e)=>{ if (e.target === lb) close(); });
+	document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") close(); });
 })();
 
-// Background music via YouTube (loops). Autoplay requires muted until user interacts.
-(function initMusic() {
-	const videoId = "lD0QTb-ieVY";
-	const btn = document.getElementById("musicBtn");
-	let player, isReady = false, isPlaying = false, userInteracted = false;
-
-	function loadApi() {
-		if (window.YT) return ready();
-		const tag = document.createElement("script");
-		tag.src = "https://www.youtube.com/iframe_api";
-		document.head.appendChild(tag);
-		window.onYouTubeIframeAPIReady = ready;
-	}
-	function ready() {
-		player = new YT.Player("yt-player", {
-			videoId,
-			playerVars: {
-				autoplay: 1, controls: 0, disablekb: 1, fs: 0, modestbranding: 1,
-				iv_load_policy: 3, rel: 0, loop: 1, playlist: videoId
-			},
-			events: {
-				onReady(ev){
-					isReady = true;
-					ev.target.mute(); // enable autoplay
-					ev.target.playVideo();
-					isPlaying = true;
-					btn.textContent = "Mute music";
-				},
-				onStateChange(ev){
-					// Loop safety
-					if (ev.data === YT.PlayerState.ENDED) ev.target.playVideo();
-				}
-			}
-		});
-	}
-	btn.addEventListener("click", () => {
-		userInteracted = true;
-		if (!isReady) return;
-		if (player.isMuted()) { player.unMute(); btn.textContent = isPlaying ? "Mute music" : "Play music"; }
-		else { player.mute(); btn.textContent = "Unmute music"; }
-		if (!isPlaying) { player.playVideo(); isPlaying = true; }
-	});
-	loadApi();
+/* Effects canvas reserved (optional future effects) */
+(() => {
+	const c = $("#fx"); const ctx = c.getContext("2d");
+	function resize(){ c.width = innerWidth; c.height = innerHeight; }
+	window.addEventListener("resize", resize); resize();
+	// faint scan noise
+	let t=0; (function loop(){
+		ctx.clearRect(0,0,c.width,c.height);
+		ctx.globalAlpha = 0.02;
+		for (let i=0;i<50;i++){
+			const y = Math.random()*c.height;
+			ctx.fillStyle = "white";
+			ctx.fillRect(0, y, c.width, 1);
+		}
+		ctx.globalAlpha = 1;
+		t+=1; requestAnimationFrame(loop);
+	})();
 })();
-
-// Small nicety: set title dynamically
-document.title = `${celebrantName} • 22nd Birthday`;
