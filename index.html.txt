@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Prima • 22nd Birthday</title>
+
+	<meta name="description" content="Happy 22nd Birthday, Prima! Made with love by Kinneth.">
+	<meta property="og:title" content="Happy 22nd Birthday, Prima!">
+	<meta property="og:description" content="Open the card. Make a wish.">
+	<meta property="og:type" content="website">
+	<meta property="og:image" content="assets/cover.jpg">
+	<meta property="og:url" content="https://birthday-h3f8f821q-kinneths-projects.vercel.app">
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
+
+	<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+	<canvas id="bg-stars" aria-hidden="true"></canvas>
+
+	<header class="hero">
+		<div class="hero__text">
+			<h1 class="brand">
+				<span class="sparkle">★</span>
+				<span>Prima</span>
+				<span class="sparkle">★</span>
+			</h1>
+			<p class="subtitle">Turning 22 • September 18, 2025</p>
+
+			<div class="countdown" id="countdown" aria-live="polite">
+				<div><strong id="d">00</strong><span>days</span></div>
+				<div><strong id="h">00</strong><span>hours</span></div>
+				<div><strong id="m">00</strong><span>minutes</span></div>
+				<div><strong id="s">00</strong><span>seconds</span></div>
+			</div>
+
+			<div class="actions">
+				<button id="openCardBtn" class="btn primary">Open the card</button>
+				<button id="musicBtn" class="btn">Play music</button>
+			</div>
+		</div>
+
+		<div class="hero__badge">
+			<div class="badge-heart">22</div>
+			<p>Happy Birthday</p>
+		</div>
+	</header>
+
+	<main>
+		<section class="card-wrap" aria-labelledby="cardTitle">
+			<h2 id="cardTitle" class="sr-only">Birthday Greeting Card</h2>
+
+			<div id="greetingCard" class="card" role="button" tabindex="0" aria-expanded="false">
+				<div class="card__front">
+					<div class="front__cover">
+						<span class="cover__title">For Prima</span>
+						<span class="cover__hint">Click to open</span>
+						<div class="cover__icons">
+							<span>✦</span><span>♡</span><span>✦</span>
+						</div>
+					</div>
+				</div>
+				<div class="card__inner-shadow"></div>
+				<div class="card__back">
+					<div class="letter">
+						<p>On this day, many, many, many years ago, the stars aligned and you were born. Over the years, somehow, you transformed from being a cute little baby into the baddest, hottest, cutest, prettiest, kindest, most incredible, most maldita, and most adorable human. But you're still my baby.</p>
+						<p>On this day, I want to take a moment to celebrate you and the wonderful person you are.</p>
+						<p><strong>Happy BIRTHDAY, my love.</strong></p>
+						<p>You are the absolute love of my life, and I truly couldn't imagine a better person to spend my life with other than you. You are the best thing that happened to me within my 21 years on this planet. You will forever and always be my greatest blessing beyond all gods and beliefs.</p>
+						<p>I pray that you win in life, achieve all your dreams, and get everything you want. I promise I'll be there every day to help you take each step and be your guide. I'll support you so loudly and proudly that you won't hear the voices of those who doubted you.</p>
+						<p>Just know that I'm always here for you, and you have me always.</p>
+						<p>I'm so glad to be here at the same time as you. I love you so much.</p>
+						<p class="signature">Love,<br>Kinneth</p>
+					</div>
+				</div>
+			</div>
+
+			<p class="hint">Tip: click again to close • confetti will pop when opened</p>
+		</section>
+
+		<section class="gallery">
+			<h2>Memories</h2>
+			<div class="grid">
+				<img src="assets/1.jpg" alt="Prima photo 1" class="zoomable">
+				<img src="assets/2.jpg" alt="Prima photo 2" class="zoomable">
+				<img src="assets/3.jpg" alt="Prima photo 3" class="zoomable">
+				<img src="assets/4.jpg" alt="Prima photo 4" class="zoomable">
+			</div>
+		</section>
+	</main>
+
+	<footer class="footer">
+		<span>Made with ♥ by Kinneth for Prima</span>
+	</footer>
+
+	<div id="lightbox" class="lightbox" aria-hidden="true">
+		<button class="lightbox__close" aria-label="Close">×</button>
+		<img src="" alt="Zoomed photo" id="lightboxImg">
+	</div>
+
+	<div id="yt-player" class="hidden" aria-hidden="true"></div>
+
+	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+	<script src="./script.js"></script>
+</body>
+</html>
