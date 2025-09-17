@@ -4,9 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Prima • 22</title>
-	<meta name="description" content="A retro desktop for Prima's 22nd — by Kinneth.">
+	<meta name="description" content="A retro birthday desktop for Prima — by Kinneth.">
 	<meta property="og:title" content="Prima • 22">
-	<meta property="og:description" content="A little retro desktop made with love.">
+	<meta property="og:description" content="Open the windows, play the song, count down to the day.">
 	<meta property="og:type" content="website">
 	<meta property="og:image" content="assets/cover.jpg">
 
@@ -17,15 +17,19 @@
 	<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-	<!-- Scanline/CRT overlay -->
 	<div class="crt"></div>
-
-	<!-- Confetti canvas -->
 	<canvas id="fx" aria-hidden="true"></canvas>
 
-	<!-- Desktop -->
 	<div id="desktop" class="desktop" style="background-image:url('assets/bg.jpg')">
 		<h1 class="glitch-title" data-text="PRIMA_22">PRIMA_22</h1>
+
+		<!-- Countdown widget -->
+		<div id="countdownWidget" class="countdown">
+			<div class="cd-item"><strong id="cd-d">00</strong><span>days</span></div>
+			<div class="cd-item"><strong id="cd-h">00</strong><span>hours</span></div>
+			<div class="cd-item"><strong id="cd-m">00</strong><span>minutes</span></div>
+			<div class="cd-item"><strong id="cd-s">00</strong><span>seconds</span></div>
+		</div>
 
 		<!-- Icons -->
 		<div class="icons">
@@ -41,14 +45,10 @@
 				<img src="assets/icon-video.png" alt="">
 				<span>Video</span>
 			</button>
-			<button class="icon" data-target="#win-gifts" aria-label="Open Gifts">
-				<img src="assets/icon-gift.png" alt="">
-				<span>Gifts</span>
-			</button>
 		</div>
 
 		<!-- Windows -->
-		<div id="win-photos" class="window" role="dialog" aria-modal="false" aria-label="Photos" hidden>
+		<div id="win-photos" class="window w-lg" role="dialog" aria-modal="false" aria-label="Photos" hidden>
 			<div class="win-bar" data-drag>
 				<span>PHOTOS</span>
 				<div class="win-actions">
@@ -103,31 +103,13 @@
 					controls
 					preload="metadata"
 					playsinline
-					style="width:100%;height:auto;border-radius:8px;">
+					style="width:100%;height:auto;border-radius:8px;filter:none;will-change:transform;backface-visibility:hidden;">
 					Sorry, your browser cannot play this video.
 				</video>
 			</div>
 		</div>
 
-		<div id="win-gifts" class="window w-sm" role="dialog" aria-modal="false" aria-label="Gifts" hidden>
-			<div class="win-bar" data-drag>
-				<span>GIFTS</span>
-				<div class="win-actions">
-					<button class="btn small" data-minimize aria-label="Minimize">–</button>
-					<button class="btn small danger" data-close aria-label="Close">×</button>
-				</div>
-			</div>
-			<div class="win-body doc">
-				<p>Make 3 wishes. If you smile, they come true.</p>
-				<ul>
-					<li>A date wherever you want.</li>
-					<li>A handwritten letter.</li>
-					<li>One mystery surprise.</li>
-				</ul>
-			</div>
-		</div>
-
-		<!-- Music player (always visible bottom-left) -->
+		<!-- Music player (bottom-left) -->
 		<div id="music" class="music">
 			<div class="music__bar" data-drag>
 				<span>MUSIC PLAYER</span>
@@ -148,7 +130,7 @@
 		</div>
 	</div>
 
-	<!-- Lightbox for photos -->
+	<!-- Lightbox -->
 	<div id="lightbox" class="lightbox" aria-hidden="true">
 		<button class="lightbox__close" aria-label="Close">×</button>
 		<img src="" alt="Zoomed photo" id="lightboxImg">
