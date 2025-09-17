@@ -4,39 +4,29 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Prima • 22</title>
-	<meta name="description" content="A retro birthday desktop for Prima — by Kinneth.">
+	<meta name="description" content="A cute birthday desktop for Prima — by Kinneth.">
 	<meta property="og:title" content="Prima • 22">
-	<meta property="og:description" content="Open the windows, play the song, count down to the day.">
+	<meta property="og:description" content="Open the windows, play the song, watch the video.">
 	<meta property="og:type" content="website">
 	<meta property="og:image" content="assets/cover.jpg">
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
 	<link rel="stylesheet" href="./style.css">
 </head>
 <body>
+	<!-- Soft scanline overlay + floating hearts -->
 	<div class="crt"></div>
 	<canvas id="fx" aria-hidden="true"></canvas>
 
-	<div id="desktop" class="desktop" style="background-image:url('assets/bg.jpg')">
-		<h1 class="glitch-title" data-text="PRIMA_22">PRIMA_22</h1>
-
-		<!-- Countdown widget -->
-		<div id="countdownWidget" class="countdown">
-			<div class="cd-item"><strong id="cd-d">00</strong><span>days</span></div>
-			<div class="cd-item"><strong id="cd-h">00</strong><span>hours</span></div>
-			<div class="cd-item"><strong id="cd-m">00</strong><span>minutes</span></div>
-			<div class="cd-item"><strong id="cd-s">00</strong><span>seconds</span></div>
-		</div>
+	<!-- Desktop (replace bg.jpg with your custom image) -->
+	<div id="desktop" class="desktop" style="--bg-url: url('assets/bg.jpg')">
+		<h1 class="title">Happy Birthday, Prima <span class="heart">♥</span></h1>
 
 		<!-- Icons -->
 		<div class="icons">
-			<button class="icon" data-target="#win-photos" aria-label="Open Photos">
-				<img src="assets/icon-photos.png" alt="">
-				<span>Photos</span>
-			</button>
 			<button class="icon" data-target="#win-notes" aria-label="Open Notes">
 				<img src="assets/icon-notes.png" alt="">
 				<span>Notes</span>
@@ -47,27 +37,7 @@
 			</button>
 		</div>
 
-		<!-- Windows -->
-		<div id="win-photos" class="window w-lg" role="dialog" aria-modal="false" aria-label="Photos" hidden>
-			<div class="win-bar" data-drag>
-				<span>PHOTOS</span>
-				<div class="win-actions">
-					<button class="btn small" data-minimize aria-label="Minimize">–</button>
-					<button class="btn small danger" data-close aria-label="Close">×</button>
-				</div>
-			</div>
-			<div class="win-body gallery">
-				<img src="assets/1.jpg" alt="Prima 1" class="zoom">
-				<img src="assets/2.jpg" alt="Prima 2" class="zoom">
-				<img src="assets/3.jpg" alt="Prima 3" class="zoom">
-				<img src="assets/4.jpg" alt="Prima 4" class="zoom">
-				<img src="assets/5.jpg" alt="Prima 5" class="zoom">
-				<img src="assets/6.jpg" alt="Prima 6" class="zoom">
-				<img src="assets/7.jpg" alt="Prima 7" class="zoom">
-				<img src="assets/8.jpg" alt="Prima 8" class="zoom">
-			</div>
-		</div>
-
+		<!-- Notes Window -->
 		<div id="win-notes" class="window w-md" role="dialog" aria-modal="false" aria-label="Notes" hidden>
 			<div class="win-bar" data-drag>
 				<span>NOTES</span>
@@ -88,6 +58,7 @@
 			</div>
 		</div>
 
+		<!-- Video Window -->
 		<div id="win-video" class="window w-lg" role="dialog" aria-modal="false" aria-label="Video" hidden>
 			<div class="win-bar" data-drag>
 				<span>VIDEO</span>
@@ -103,7 +74,7 @@
 					controls
 					preload="metadata"
 					playsinline
-					style="width:100%;height:auto;border-radius:8px;filter:none;will-change:transform;backface-visibility:hidden;">
+					style="width:100%;height:auto;border-radius:12px;filter:none;will-change:transform;backface-visibility:hidden;">
 					Sorry, your browser cannot play this video.
 				</video>
 			</div>
@@ -128,12 +99,6 @@
 				<audio id="audio" src="assets/evergreen.mp3" preload="metadata"></audio>
 			</div>
 		</div>
-	</div>
-
-	<!-- Lightbox -->
-	<div id="lightbox" class="lightbox" aria-hidden="true">
-		<button class="lightbox__close" aria-label="Close">×</button>
-		<img src="" alt="Zoomed photo" id="lightboxImg">
 	</div>
 
 	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
