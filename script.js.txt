@@ -1,0 +1,188 @@
+// --- Simple window manager: open/close, bring-to-front, drag ---
+
+const windows = {
+  hey: document.getElementById('win-hey'),
+  gift: document.getElementById('win-gift'),
+  photos: document.getElementById('win-photos'),
+  wish: document.getElementById('win-wish')
+};
+
+let zTop = 10;
+function bringToFront(el) {
+  zTop += 1;
+  el.style.zIndex = String(zTop);
+}
+
+function openWindow(key) {
+  const el = windows[key];
+  if (!el) return;
+  el.classList.add('show');
+  bringToFront(el);
+}
+
+function closeWindowBySelector(sel) {
+  const el = document.querySelector(sel);
+  if (el) el.classList.remove('show');
+}
+
+document.querySelectorAll('.icon').forEach(icon => {
+  let clickTimeout;
+  icon.addEventListener('click', () => {
+    // emulate double-click: open on double click
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+      clickTimeout = null;
+      const key = icon.getAttribute('data-window');
+      openWindow(key);
+    } else {
+      clickTimeout = setTimeout(() => {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }, 250);
+    }
+  });
+});
+
+document.querySelectorAll('.window-close').forEach(btn => {
+  btn.addEventListener('click', () => closeWindowBySelector(btn.getAttribute('data-close')));
+});
+
+Object.values(windows).forEach(win => {
+  const bar = win.querySelector('.window-titlebar');
+  let dragging = false;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+  bar.addEventListener('mousedown', e => {
+    dragging = true;
+    bringToFront(win);
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = win.getBoundingClientRect();
+    startLeft = rect.left;
+    startTop = rect.top;
+    document.body.style.userSelect = 'none';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    win.style.left = `${startLeft + dx}px`;
+    win.style.top = `${startTop + dy}px`;
+  });
+
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+    document.body.style.userSelect = '';
+  });
+
+  win.addEventListener('mousedown', () => bringToFront(win));
+});
+
+// --- Wish input (persist in localStorage) ---
+const wishInput = document.getElementById('wish-input');
+const wishSave = document.getElementById('wish-save');
+const wishStatus = document.getElementById('wish-status');
+
+const WISH_KEY = 'birthday_wish_text';
+if (localStorage.getItem(WISH_KEY)) {
+  wishInput.value = localStorage.getItem(WISH_KEY) || '';
+}
+wishSave.addEventListener('click', () => {
+  localStorage.setItem(WISH_KEY, wishInput.value.trim());
+  wishStatus.textContent = 'Saved locally ✓';
+  setTimeout(() => wishStatus.textContent = '', 2000);
+});
+
+// --- Confetti on load (simple canvas particles) ---
+(function confetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const particles = [];
+  const COUNT = 120;
+  for (let i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -Math.random() * canvas.height,
+      size: 3 + Math.random() * 4,
+      color: `hsl(${Math.random() * 360},90%,60%)`,
+      speedY: 1 + Math.random() * 3,
+      speedX: -1 + Math.random() * 2,
+      rot: Math.random() * Math.PI,
+      rotSpeed: -0.05 + Math.random() * 0.1
+    });
+  }
+
+  let alive = true;
+  setTimeout(() => alive = false, 4000); // stop after a few seconds
+
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y += p.speedY;
+      p.x += p.speedX;
+      p.rot += p.rotSpeed;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    if (alive) requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+// --- YouTube IFrame API player ---
+let ytPlayer = null;
+// Replace with the actual Evergreen video ID.
+// Common uploads include official audio or lyric videos. Example placeholder:
+const YT_VIDEO_ID = 'lD0QTb-ieVY';
+
+function onYouTubeIframeAPIReady() {
+  ytPlayer = new YT.Player('yt-player', {
+    height: '0',
+    width: '0',
+    videoId: YT_VIDEO_ID,
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      modestbranding: 1,
+      rel: 0,
+      origin: window.location.origin
+    },
+    events: {
+      onReady: () => {
+        // no autoplay to avoid browser block; user can press play
+      }
+    }
+  });
+}
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+});
+document.getElementById('btn-pause').addEventListener('click', () => {
+  if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+});
+let muted = false;
+document.getElementById('btn-mute').addEventListener('click', () => {
+  if (!ytPlayer) return;
+  if (muted) {
+    ytPlayer.unMute();
+  } else {
+    ytPlayer.mute();
+  }
+  muted = !muted;
+});
